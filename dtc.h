@@ -266,4 +266,7 @@ struct boot_info *dt_from_source(const char *f);
 
 struct boot_info *dt_from_fs(const char *dirname);
 
+void dt_to_fs(const char * path, struct boot_info *bi);
+
+
 #endif /* _DTC_H */

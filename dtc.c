@@ -49,11 +49,12 @@ static void fill_fullpaths(struct node *tree, const char *prefix)
 
 /* Usage related data. */
 static const char usage_synopsis[] = "dtc [options] <input file>";
-static const char usage_short_opts[] = "qI:O:o:V:d:R:S:p:fb:i:H:sW:E:hv";
+static const char usage_short_opts[] = "qI:P:O:o:V:d:R:S:p:fb:i:H:sW:E:hv";
 static struct option const usage_long_opts[] = {
 	{"quiet",            no_argument, NULL, 'q'},
 	{"in-format",         a_argument, NULL, 'I'},
 	{"out",               a_argument, NULL, 'o'},
+	{"fs-path",           a_argument, NULL, 'P'},
 	{"out-format",        a_argument, NULL, 'O'},
 	{"out-version",       a_argument, NULL, 'V'},
 	{"out-dependency",    a_argument, NULL, 'd'},
@@ -78,10 +79,12 @@ static const char * const usage_opts_help[] = {
 	 "\t\tdtb - device tree blob\n"
 	 "\t\tfs  - /proc/device-tree style directory",
 	"\n\tOutput file",
+	 "\n\t Output path where a /proc/device-tree style directory will be created ",
 	"\n\tOutput formats are:\n"
 	 "\t\tdts - device tree source text\n"
 	 "\t\tdtb - device tree blob\n"
-	 "\t\tasm - assembler source",
+	 "\t\tasm - assembler source\n"
+         "\t\tfs  - /proc/device-tree style directory",
 	"\n\tBlob version to produce, defaults to %d (for dtb and asm output)", //, DEFAULT_FDT_VERSION);
 	"\n\tOutput dependency file",
 	"\n\ttMake space for <number> reserve map entries (for dtb and asm output)",
@@ -109,7 +112,8 @@ int main(int argc, char *argv[])
 	const char *outform = "dts";
 	const char *outname = "-";
 	const char *depname = NULL;
-	int force = 0, sort = 0;
+	const char *path = NULL;
+	bool force = false, sort = false;
 	const char *arg;
 	int opt;
 	FILE *outf = NULL;
@@ -123,6 +127,9 @@ int main(int argc, char *argv[])
 
 	while ((opt = util_getopt_long()) != EOF) {
 		switch (opt) {
+		case 'P':
+			path = optarg;
+			break;
 		case 'I':
 			inform = optarg;
 			break;
@@ -249,7 +256,9 @@ int main(int argc, char *argv[])
 		dt_to_blob(outf, bi, outversion);
 	} else if (streq(outform, "asm")) {
 		dt_to_asm(outf, bi, outversion);
-	} else if (streq(outform, "null")) {
+	}else if (streq(outform, "fs")) {
+		dt_to_fs(path, bi);
+	}else if (streq(outform, "null")) {
 		/* do nothing */
 	} else {
 		die("Unknown output format \"%s\"\n", outform);
